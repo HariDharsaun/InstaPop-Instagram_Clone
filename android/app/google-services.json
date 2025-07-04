@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "675736525531",
+    "project_id": "instapop-24a1e",
+    "storage_bucket": "instapop-24a1e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:675736525531:android:450f3bd8efa4a5c0d20afe",
+        "android_client_info": {
+          "package_name": "com.example.instapop_"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDPTteRSS9MV98qH49J-U8fx97QTTD5n4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
