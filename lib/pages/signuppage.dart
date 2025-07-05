@@ -22,33 +22,44 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     //credentail check
-    int pwdcheck(String pwd, String cnfpwd) {
-      if (pwd.length < 8) {
+    int pwdcheck(String email , String username ,String pwd, String cnfpwd) {
+      if(email.isEmpty || username.isEmpty || pwd.isEmpty || cnfpwd.isEmpty)
+      {
         return 1;
-      } else if (pwd != cnfpwd) {
-        return 2;
       }
-      return 3;
+      else if (pwd.length < 8) {
+        return 2;
+      } else if (pwd != cnfpwd) {
+        return 3;
+      }
+      return 4;
     }
 
     void callbackfunc() async {
-      if (pwdcheck(pwd_controller.text, cnfpwd_controller.text) == 3) {
+      if (pwdcheck(email_controller.text,Username_controller.text, pwd_controller.text, cnfpwd_controller.text) == 4) {
         final msg = await _authService.signup(
-          email_controller.text,
-          pwd_controller.text,
+          email_controller.text.trim(),
+          Username_controller.text.trim(),
+          pwd_controller.text.trim()
         );
         if (msg == "success") {
-          Navigator.pushNamed(context, '/homepage');
+          Navigator.pushNamed(context, '/profilesetup');
         } else {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(backgroundColor: Colors.red.shade500,content: Text(msg)));
         }
-      } else if (pwdcheck(pwd_controller.text, cnfpwd_controller.text) == 1) {
+      }
+      else if (pwdcheck(email_controller.text,Username_controller.text, pwd_controller.text, cnfpwd_controller.text) == 1) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: Colors.red.shade500, content: Text("All fields are required")),
+        );
+      }
+      else if (pwdcheck(email_controller.text,Username_controller.text, pwd_controller.text, cnfpwd_controller.text) == 2) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(backgroundColor: Colors.red.shade500, content: Text("password must be atleast 8 characters")),
         );
-      } else if (pwdcheck(pwd_controller.text, cnfpwd_controller.text) == 2) {
+      } else if (pwdcheck(email_controller.text,Username_controller.text, pwd_controller.text, cnfpwd_controller.text) == 3) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(backgroundColor: Colors.red.shade500,content: Text("password & confirm password are not same")),
         );

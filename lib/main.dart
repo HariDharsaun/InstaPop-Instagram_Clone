@@ -5,6 +5,7 @@ import 'package:instapop_/modes/modes.dart';
 import 'package:instapop_/pages/homepage.dart';
 import 'package:instapop_/pages/loginpage.dart';
 import 'package:instapop_/pages/pagestack.dart';
+import 'package:instapop_/pages/profile_setup.dart';
 import 'package:instapop_/pages/signuppage.dart';
 
 void main() async{
@@ -23,12 +24,13 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       theme: lightmode,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/login',
+      initialRoute: '/signup',
       routes: {
         '/login': (context)=> Loginpage(),
         '/signup' : (context)=> SignupPage(),
         '/homepage': (context) => Homepage(),
-        '/pagestack': (context)=>PageStack()
+        '/pagestack': (context)=>PageStack(),
+        '/profilesetup': (context)=>ProfileSetupPage()
       },
     );
   }

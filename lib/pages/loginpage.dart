@@ -18,11 +18,23 @@ class _LoginpageState extends State<Loginpage> {
 
   final AuthService _authService = AuthService();
 
+  bool emailpwdcheck(String email,String pwd)
+  {
+    return email.isEmpty || pwd.isEmpty;
+  }
+
   void callbackfunc() async
   {
-    final msg = await _authService.login(
-          email_controller.text,
-          pwd_controller.text,
+    if(emailpwdcheck(email_controller.text, pwd_controller.text))
+    {
+      ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(backgroundColor: Colors.red.shade500,content: Text("All fields are required")));
+    }
+    else{
+      final msg = await _authService.login(
+          email_controller.text.trim(),
+          pwd_controller.text.trim(),
         );
         if (msg == "success") {
           Navigator.pushNamed(context, '/homepage');
@@ -31,6 +43,7 @@ class _LoginpageState extends State<Loginpage> {
             context,
           ).showSnackBar(SnackBar(backgroundColor: Colors.red.shade500,content: Text(msg)));
         }
+    }
   }
 
   @override
