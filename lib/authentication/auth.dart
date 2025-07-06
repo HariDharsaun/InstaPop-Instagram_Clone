@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:instapop_/models/usermodel.dart';
 
 class AuthService{
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -9,16 +10,17 @@ class AuthService{
   {
     try{
       UserCredential cred =  await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set(
-        {
-          'email' : email,
-          'username': username,
-          'bio': '',
-          'profileImageUrl': '',
-          'followers' : [],
-          'following' : []
-        }
+      UserModel user = UserModel(
+        email: email, 
+        username: username, 
+        bio: '', 
+        profileImageUrl: '', 
+        followers: [], 
+        following: [], 
+        timeStamp: Timestamp.now().toDate().toString()
       );
+
+      await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set(user.toMap());
       return "success";
     }
     catch(e)

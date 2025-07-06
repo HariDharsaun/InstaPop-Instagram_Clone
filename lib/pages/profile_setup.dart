@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instapop_/components/authbutton.dart';
 import 'package:instapop_/components/textfield.dart';
+import 'package:instapop_/models/usermodel.dart';
 
 class ProfileSetupPage extends StatefulWidget {
   const ProfileSetupPage({super.key});
@@ -38,6 +39,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
 
   Future<void> saveprofile() async {
     final uid = _auth.currentUser!.uid;
+
     if (uid == null) return;
 
     String imageurl = "";
@@ -77,7 +79,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Failed to save prfile')));
+      ).showSnackBar(SnackBar(content: Text('Failed to save profile')));
     }
   }
 
