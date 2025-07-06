@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:instapop_/pages/homepage.dart';
+import 'package:instapop_/pages/newpostpage.dart';
+import 'package:instapop_/pages/reelspage.dart';
 import 'package:instapop_/pages/searchpage.dart';
+import 'package:instapop_/pages/userprofilepage.dart';
 
 class PageStack extends StatefulWidget {
   const PageStack({super.key});
@@ -20,7 +23,10 @@ class _PageStackState extends State<PageStack> {
           index: currrentindex,
           children: [
             Homepage(),
-            SearchPage()
+            SearchPage(),
+            Newpostpage(),
+            Reelspage(),
+            Userprofilepage()
           ],
         ),
       

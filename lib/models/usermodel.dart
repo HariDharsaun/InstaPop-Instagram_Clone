@@ -40,7 +40,7 @@ class UserModel{
       profileImageUrl: map['profileImageUrl'] ?? '',
       followers: List<String>.from(map['followers'] ?? []),
       following: List<String>.from(map['following'] ?? []),
-      timeStamp: map['timestamp']?.toDate().toString() ?? '',
+      timeStamp: map['timestamp'] ?? '',
     );
   }
 }

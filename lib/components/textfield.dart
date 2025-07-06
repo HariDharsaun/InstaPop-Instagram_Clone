@@ -37,6 +37,8 @@ class _MyTextfieldState extends State<MyTextfield> {
           Expanded(
             child: TextField(
               controller: widget.controller,
+              style: TextStyle(color: Colors.black),
+              cursorColor: Colors.blue,
               decoration: InputDecoration(
                 // fillColor: Colors.grey.shade200,
                 // filled: true,

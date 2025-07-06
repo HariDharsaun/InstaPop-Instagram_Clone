@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instapop_/components/authbutton.dart';
 import 'package:instapop_/components/textfield.dart';
-import 'package:instapop_/models/usermodel.dart';
+
 
 class ProfileSetupPage extends StatefulWidget {
   const ProfileSetupPage({super.key});
@@ -75,7 +75,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('Profile saved!')));
 
-      Navigator.pushReplacementNamed(context, '/homepage');
+      Navigator.pushReplacementNamed(context, '/pagestack');
     } catch (e) {
       ScaffoldMessenger.of(
         context,

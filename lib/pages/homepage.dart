@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:instapop_/authentication/auth.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -9,6 +11,12 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
+
+  void logout()async{
+    AuthService _auth = AuthService();
+    await _auth.logout(); 
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -23,12 +31,14 @@ class _HomepageState extends State<Homepage> {
               icon: Icon(Icons.favorite_border_outlined),
             ),
             IconButton(
-              onPressed: (){}, 
-              icon: Icon(Icons.message_outlined)
+              onPressed: (){
+                logout();
+                Navigator.pushReplacementNamed(context, '/login');
+              }, 
+              icon: Icon(Icons.logout)
             )
           ],
         ),
-        body:Container()
       ),
     );
   }
