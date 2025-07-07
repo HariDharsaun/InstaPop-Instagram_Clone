@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instapop_/components/authbutton.dart';
 import 'package:instapop_/components/textfield.dart';
+import 'package:instapop_/models/usermodel.dart';
 
 
 class ProfileSetupPage extends StatefulWidget {
@@ -26,6 +27,34 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
   final FirebaseStorage _firestorage = FirebaseStorage.instance;
 
   File? _profileImage;
+  UserModel? userinfo;
+
+  @override
+void initState() {
+  super.initState();
+  loadUserData(); // call async function separately
+}
+
+void loadUserData() async {
+  userinfo = await fetchUserProfile();
+  if (userinfo != null) {
+    setState(() {
+      Username_controller.text = userinfo!.username;
+      bio_controller.text = userinfo!.bio;
+    });
+  }
+}
+
+  //fetch useranme and bio if user want to edit the profile
+  Future<UserModel?> fetchUserProfile() async {
+    final doc = await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
+
+    if(doc.exists)
+    {
+      return UserModel.fromMap(doc.data()!);
+    }
+    return null;
+  }
 
   //pick image
   Future<void> pickimage() async {

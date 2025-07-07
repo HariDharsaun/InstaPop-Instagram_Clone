@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instapop_/models/usermodel.dart';
+import 'package:instapop_/pages/profile_setup.dart';
 
 class Userprofilepage extends StatefulWidget {
   const Userprofilepage({super.key});
@@ -85,7 +86,9 @@ class _UserprofilepageState extends State<Userprofilepage> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/profilesetup');
+                        },
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                         child: Text("Edit Profile",style: TextStyle(color: Colors.white),),
                       ),

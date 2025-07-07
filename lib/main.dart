@@ -5,10 +5,10 @@ import 'package:instapop_/firebase_options.dart';
 import 'package:instapop_/modes/modes.dart';
 import 'package:instapop_/pages/homepage.dart';
 import 'package:instapop_/pages/loginpage.dart';
+import 'package:instapop_/pages/messagingpage.dart';
 import 'package:instapop_/pages/newpostpage.dart';
 import 'package:instapop_/pages/pagestack.dart';
 import 'package:instapop_/pages/profile_setup.dart';
-import 'package:instapop_/pages/reelspage.dart';
 import 'package:instapop_/pages/searchpage.dart';
 import 'package:instapop_/pages/signuppage.dart';
 import 'package:instapop_/pages/userprofilepage.dart';
@@ -27,7 +27,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: darkmode,
+      theme: lightmode,
       debugShowCheckedModeBanner: false,
       initialRoute: FirebaseAuth.instance.currentUser != null ? '/pagestack' : '/login',
       routes: {
@@ -37,7 +37,7 @@ class MainApp extends StatelessWidget {
         '/homepage': (context) => Homepage(),
         '/search': (context)=> SearchPage(),
         '/newpost':(context) => Newpostpage(),
-        '/reels': (context)=> Reelspage(),
+        '/message': (context)=> MessagingPage(),
         '/userprofile':(context)=> Userprofilepage(),
         '/profilesetup': (context)=>ProfileSetupPage(),
       },

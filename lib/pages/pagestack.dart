@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:instapop_/pages/homepage.dart';
+import 'package:instapop_/pages/messagingpage.dart';
 import 'package:instapop_/pages/newpostpage.dart';
-import 'package:instapop_/pages/reelspage.dart';
 import 'package:instapop_/pages/searchpage.dart';
 import 'package:instapop_/pages/userprofilepage.dart';
 
@@ -25,7 +25,7 @@ class _PageStackState extends State<PageStack> {
             Homepage(),
             SearchPage(),
             Newpostpage(),
-            Reelspage(),
+            MessagingPage(),
             Userprofilepage()
           ],
         ),
@@ -45,7 +45,7 @@ class _PageStackState extends State<PageStack> {
             BottomNavigationBarItem(icon: Icon(Icons.home),label: 'Home'),
             BottomNavigationBarItem(icon: Icon(Icons.search),label: 'Search'),
             BottomNavigationBarItem(icon: Icon(Icons.add),label: 'Post'),
-            BottomNavigationBarItem(icon: Icon(Icons.slideshow),label: 'Reels'),
+            BottomNavigationBarItem(icon: Icon(Icons.message_outlined),label: 'Message'),
             BottomNavigationBarItem(icon: Icon(Icons.person),label: 'Profile')
           ],
         ),
