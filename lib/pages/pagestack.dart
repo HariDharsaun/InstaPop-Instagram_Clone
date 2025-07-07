@@ -26,7 +26,7 @@ class _PageStackState extends State<PageStack> {
             SearchPage(),
             Newpostpage(),
             MessagingPage(),
-            Userprofilepage()
+            Userprofilepage(),
           ],
         ),
       

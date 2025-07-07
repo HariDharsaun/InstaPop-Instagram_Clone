@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:instapop_/firebase_options.dart';
 import 'package:instapop_/modes/modes.dart';
+import 'package:instapop_/pages/displayfollowers.dart';
+import 'package:instapop_/pages/displayfollowing.dart';
 import 'package:instapop_/pages/homepage.dart';
 import 'package:instapop_/pages/loginpage.dart';
 import 'package:instapop_/pages/messagingpage.dart';
@@ -40,6 +42,8 @@ class MainApp extends StatelessWidget {
         '/message': (context)=> MessagingPage(),
         '/userprofile':(context)=> Userprofilepage(),
         '/profilesetup': (context)=>ProfileSetupPage(),
+        '/displayfollowers': (context) => FollowersListPage(),
+        '/displayfollowings': (context)=> FollowingsListPage()
       },
     );
   }

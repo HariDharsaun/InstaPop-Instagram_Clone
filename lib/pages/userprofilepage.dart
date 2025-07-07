@@ -68,9 +68,9 @@ class _UserprofilepageState extends State<Userprofilepage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildStat("Posts", "0"),
-                          _buildStat("Followers", user.followers.length.toString()),
-                          _buildStat("Following", user.following.length.toString()),
+                          _buildStat("Posts", "0",(){}),
+                          _buildStat("Followers", user.followers.length.toString(),(){Navigator.pushNamed(context,'/displayfollowers');}),
+                          _buildStat("Following", user.following.length.toString(),(){Navigator.pushNamed(context,'/displayfollowings');}),
                         ],
                       ),
                     )
@@ -133,16 +133,21 @@ class _UserprofilepageState extends State<Userprofilepage> {
     );
   }
 
-  Widget _buildStat(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+  Widget _buildStat(String label, String value,Function func) {
+    return GestureDetector(
+      onTap: ()=> func(),
+      child: Container(
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            SizedBox(height: 4),
+            Text(label, style: TextStyle(fontSize: 12)),
+          ],
         ),
-        SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 12)),
-      ],
+      ),
     );
   }
 }

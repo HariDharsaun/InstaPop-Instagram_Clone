@@ -47,13 +47,14 @@ class _SearchPageState extends State<SearchPage> {
           child: Column(
             children: [
               searchbar(),
+              SizedBox(height: 10,),
               StreamBuilder(
                 stream: FirebaseFirestore.instance
                     .collection('users')
                     .snapshots(),
                 builder: (context, snapshots) {
                   if (snapshots.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator(color: Colors.blue);
+                    return Center(child: CircularProgressIndicator(color: Colors.blue));
                   } else if (snapshots.hasData &&
                       snapshots.data!.docs != null) {
                     List<UserModel> users = snapshots.data!.docs
@@ -76,12 +77,12 @@ class _SearchPageState extends State<SearchPage> {
                             users[index].bio,
                             style: TextStyle(
                               color: Colors.grey.shade500,
-                              fontSize: 12,
+                              fontSize: 12
                             ),
                           ),
                           trailing: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                              backgroundColor: isFollowing ?  Colors.red.shade400 : Colors.blue, 
                             ),
                             onPressed: () async {
                               final currentUserUid = _auth.currentUser!.uid;
@@ -108,6 +109,7 @@ class _SearchPageState extends State<SearchPage> {
                                   }
                                 );
                               }
+                              //unfollow
                               else
                               {
                                 setState(() {
