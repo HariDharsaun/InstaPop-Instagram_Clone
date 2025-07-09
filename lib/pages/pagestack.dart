@@ -14,20 +14,40 @@ class PageStack extends StatefulWidget {
 
 class _PageStackState extends State<PageStack> {
   int currrentindex = 0;
+  late PageController controller;
+
+  @override
+  void initState()
+  {
+    super.initState();
+    controller = PageController();
+  }
+
+  @override
+  void dispose(){
+    super.dispose();
+    controller.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
 
     return SafeArea(
       child: Scaffold(
-        body: IndexedStack(
-          index: currrentindex,
+        body: PageView(
+          controller: controller,
+          onPageChanged: (index){
+            setState(() {
+              currrentindex = index;
+            });
+          },
           children: [
-            Homepage(),
-            SearchPage(),
-            Newpostpage(),
-            MessagingPage(),
-            Userprofilepage(),
-          ],
+              Homepage(),
+              SearchPage(),
+              Newpostpage(),
+              MessagingPage(),
+              Userprofilepage(),
+            ]
         ),
       
         bottomNavigationBar: BottomNavigationBar(
@@ -35,18 +55,16 @@ class _PageStackState extends State<PageStack> {
           currentIndex: currrentindex,
           onTap: (index)
           {
-            setState(() {
-              currrentindex = index;
-            });
+            controller.jumpToPage(index);
           },
           selectedItemColor: Theme.of(context).colorScheme.primary,
           unselectedItemColor: Colors.grey,
           items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home),label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.search),label: 'Search'),
-            BottomNavigationBarItem(icon: Icon(Icons.add),label: 'Post'),
-            BottomNavigationBarItem(icon: Icon(Icons.message_outlined),label: 'Message'),
-            BottomNavigationBarItem(icon: Icon(Icons.person),label: 'Profile')
+            BottomNavigationBarItem(icon: Icon(Icons.home),label: ''),
+            BottomNavigationBarItem(icon: Icon(Icons.search),label: ''),
+            BottomNavigationBarItem(icon: Icon(Icons.add),label: ''),
+            BottomNavigationBarItem(icon: Icon(Icons.message_outlined),label: ''),
+            BottomNavigationBarItem(icon: Icon(Icons.person),label: '')
           ],
         ),
       ),

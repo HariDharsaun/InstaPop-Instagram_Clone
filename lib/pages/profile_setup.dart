@@ -88,12 +88,18 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       }
     }
 
+    final updateData = {
+      'username' : Username_controller.text,
+      'bio': bio_controller.text
+    };
+
+    if(imageUrl.isNotEmpty)
+    {
+      updateData['profileImageUrl'] = imageUrl;
+    }
+
     try {
-      await _firestore.collection('users').doc(uid).update({
-        'username': Username_controller.text.trim(),
-        'bio': bio_controller.text.trim(),
-        'profileImageUrl': imageUrl,
-      });
+      await _firestore.collection('users').doc(uid).update(updateData);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile saved!')));
       Navigator.pop(context);
     } catch (e) {
@@ -117,8 +123,8 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                 child: CircleAvatar(
                   radius: 60,
                   backgroundColor: Colors.grey.shade400,
-                  backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
-                  child: _profileImage == null ? Icon(Icons.person, size: 60) : null,
+                  backgroundImage: _profileImage != null ? FileImage(_profileImage!) : (userinfo?.profileImageUrl != null && userinfo!.profileImageUrl.isNotEmpty ? NetworkImage(userinfo!.profileImageUrl): null),
+                  child: (_profileImage == null && userinfo?.profileImageUrl == '' )? Icon(Icons.person, size: 60) : null,
                 ),
               ),
               SizedBox(height: 20),

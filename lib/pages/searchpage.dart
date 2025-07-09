@@ -32,6 +32,7 @@ class _SearchPageState extends State<SearchPage> {
   final doc = await _firestore.collection('users').doc(uid).get();
   if (doc.exists && doc.data()!.containsKey('following')) {
     List<dynamic> followingList = doc['following'];
+    if (!mounted) return;
     setState(() {
       followingUserids = Set<String>.from(followingList);
     });
@@ -112,6 +113,7 @@ class _SearchPageState extends State<SearchPage> {
                               //unfollow
                               else
                               {
+                                
                                 setState(() {
                                   followingUserids.remove(targetUserid);
                                 });
