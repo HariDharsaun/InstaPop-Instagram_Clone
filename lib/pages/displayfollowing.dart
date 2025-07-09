@@ -63,7 +63,7 @@ class _FollowingsListPageState extends State<FollowingsListPage> {
                     subtitle: Text(users[index].bio,style: TextStyle(color: Colors.grey.shade400,fontSize: 12),),
                     trailing: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Colors.red,
                         foregroundColor: Colors.white
                       ),
                       onPressed: () async {

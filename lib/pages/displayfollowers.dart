@@ -95,7 +95,7 @@ class _FollowersListPageState extends State<FollowersListPage> {
                           }); // Refresh the UI
                       }
                       },
-                      child: Text('un follow')
+                      child: Text('follow')
                     ),
                   );
                 },

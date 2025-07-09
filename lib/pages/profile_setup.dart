@@ -1,15 +1,14 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:instapop_/components/authbutton.dart';
 import 'package:instapop_/components/textfield.dart';
 import 'package:instapop_/models/usermodel.dart';
-
+import 'dart:convert';
 
 class ProfileSetupPage extends StatefulWidget {
   const ProfileSetupPage({super.key});
@@ -24,39 +23,32 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseStorage _firestorage = FirebaseStorage.instance;
 
   File? _profileImage;
   UserModel? userinfo;
 
   @override
-void initState() {
-  super.initState();
-  loadUserData(); // call async function separately
-}
-
-void loadUserData() async {
-  userinfo = await fetchUserProfile();
-  if (userinfo != null) {
-    setState(() {
-      Username_controller.text = userinfo!.username;
-      bio_controller.text = userinfo!.bio;
-    });
+  void initState() {
+    super.initState();
+    loadUserData();
   }
-}
 
-  //fetch useranme and bio if user want to edit the profile
+  void loadUserData() async {
+    userinfo = await fetchUserProfile();
+    if (userinfo != null) {
+      setState(() {
+        Username_controller.text = userinfo!.username;
+        bio_controller.text = userinfo!.bio;
+      });
+    }
+  }
+
   Future<UserModel?> fetchUserProfile() async {
     final doc = await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
-
-    if(doc.exists)
-    {
-      return UserModel.fromMap(doc.data()!);
-    }
+    if (doc.exists) return UserModel.fromMap(doc.data()!);
     return null;
   }
 
-  //pick image
   Future<void> pickimage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -66,49 +58,46 @@ void loadUserData() async {
     }
   }
 
+  Future<String> uploadToCloudinary(File imageFile) async {
+    const cloudName = "dowmhkair";
+    const uploadPreset = "Instapop_upload";
+
+    final uri = Uri.parse("https://api.cloudinary.com/v1_1/$cloudName/image/upload");
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['upload_preset'] = uploadPreset
+      ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+
+    final response = await request.send();
+    final resStr = await response.stream.bytesToString();
+    final data = json.decode(resStr);
+    return data['secure_url'];
+  }
+
   Future<void> saveprofile() async {
     final uid = _auth.currentUser!.uid;
-
-    if (uid == null) return;
-
-    String imageurl = "";
+    String imageUrl = "";
 
     if (_profileImage != null) {
       try {
-        final ref = _firestorage.ref().child("profileImages/$uid.jpg");
-
-        // Upload the file and wait for completion
-        UploadTask uploadTask = ref.putFile(_profileImage!);
-        TaskSnapshot snapshot = await uploadTask;
-
-        // Get download URL after successful upload
-        imageurl = await snapshot.ref.getDownloadURL();
+        imageUrl = await uploadToCloudinary(_profileImage!);
       } catch (e) {
-        print("UPLOAD ERROR: $e");
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(backgroundColor: Colors.red.shade500,content: Text("Image upload failed")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Image upload failed")),
+        );
         return;
       }
     }
 
-    //store in firestore
     try {
       await _firestore.collection('users').doc(uid).update({
         'username': Username_controller.text.trim(),
         'bio': bio_controller.text.trim(),
-        'profileImageUrl': imageurl,
+        'profileImageUrl': imageUrl,
       });
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Profile saved!')));
-
-      Navigator.pushReplacementNamed(context, '/pagestack');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile saved!')));
+      Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to save profile')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save profile')));
     }
   }
 
@@ -121,52 +110,23 @@ void loadUserData() async {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Setup your profile",
-                    style: GoogleFonts.lobsterTwo(
-                      fontWeight: FontWeight.w600,
-                      fontSize: MediaQuery.of(context).size.width * 0.06,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 40),
+              Text("Setup your profile", style: GoogleFonts.lobsterTwo(fontSize: 24)),
+              SizedBox(height: 30),
               GestureDetector(
                 onTap: pickimage,
                 child: CircleAvatar(
-                  radius: MediaQuery.of(context).size.width * 0.125,
+                  radius: 60,
                   backgroundColor: Colors.grey.shade400,
-                  backgroundImage: _profileImage != null
-                      ? FileImage(_profileImage!)
-                      : null,
-                  child: _profileImage == null
-                      ? Icon(
-                          Icons.person,
-                          size: MediaQuery.of(context).size.width * 0.15,
-                          color: Colors.grey.shade700,
-                        )
-                      : null,
+                  backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                  child: _profileImage == null ? Icon(Icons.person, size: 60) : null,
                 ),
               ),
+              SizedBox(height: 20),
+              MyTextfield(controller: Username_controller, hinttext: "Username", obscureText: false, showPwd: false),
               SizedBox(height: 15),
-              MyTextfield(
-                controller: Username_controller,
-                hinttext: "Username",
-                obscureText: false,
-                showPwd: false,
-              ),
+              MyTextfield(controller: bio_controller, hinttext: "Bio", obscureText: false, showPwd: false),
               SizedBox(height: 15),
-              MyTextfield(
-                controller: bio_controller,
-                hinttext: "Bio",
-                obscureText: false,
-                showPwd: false,
-              ),
-              SizedBox(height: 15),
-              AuthButton(name: "save", function: saveprofile),
+              AuthButton(name: "Save", function: saveprofile),
             ],
           ),
         ),
