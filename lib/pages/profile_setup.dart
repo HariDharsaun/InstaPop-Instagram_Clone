@@ -10,6 +10,8 @@ import 'package:instapop_/components/textfield.dart';
 import 'package:instapop_/models/usermodel.dart';
 import 'dart:convert';
 
+import 'package:instapop_/services/cloudinary.dart';
+
 class ProfileSetupPage extends StatefulWidget {
   const ProfileSetupPage({super.key});
 
@@ -58,20 +60,20 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     }
   }
 
-  Future<String> uploadToCloudinary(File imageFile) async {
-    const cloudName = "dowmhkair";
-    const uploadPreset = "Instapop_upload";
+  // Future<String> uploadToCloudinary(File imageFile) async {
+  //   const cloudName = "dowmhkair";
+  //   const uploadPreset = "Instapop_upload";
 
-    final uri = Uri.parse("https://api.cloudinary.com/v1_1/$cloudName/image/upload");
-    final request = http.MultipartRequest('POST', uri)
-      ..fields['upload_preset'] = uploadPreset
-      ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+  //   final uri = Uri.parse("https://api.cloudinary.com/v1_1/$cloudName/image/upload");
+  //   final request = http.MultipartRequest('POST', uri)
+  //     ..fields['upload_preset'] = uploadPreset
+  //     ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
 
-    final response = await request.send();
-    final resStr = await response.stream.bytesToString();
-    final data = json.decode(resStr);
-    return data['secure_url'];
-  }
+  //   final response = await request.send();
+  //   final resStr = await response.stream.bytesToString();
+  //   final data = json.decode(resStr);
+  //   return data['secure_url'];
+  // }
 
   Future<void> saveprofile() async {
     final uid = _auth.currentUser!.uid;
@@ -79,7 +81,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
 
     if (_profileImage != null) {
       try {
-        imageUrl = await uploadToCloudinary(_profileImage!);
+        imageUrl = await Cloudinary.uploadToCloudinary(_profileImage!);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Image upload failed")),
