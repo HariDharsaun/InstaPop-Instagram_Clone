@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:instapop_/components/textfield.dart';
 import 'package:instapop_/models/usermodel.dart';
 
 class SearchPage extends StatefulWidget {
@@ -44,7 +42,7 @@ class _SearchPageState extends State<SearchPage> {
     return SafeArea(
       child: Scaffold(
         body: Padding(
-          padding: EdgeInsets.all(10),
+          padding: EdgeInsets.all(8),
           child: Column(
             children: [
               searchbar(),
@@ -71,8 +69,17 @@ class _SearchPageState extends State<SearchPage> {
                       itemBuilder: (context, index) {
                         final targetUserid = snapshots.data!.docs[index].id;
                         bool isFollowing = followingUserids.contains(targetUserid);
+
                         return ListTile(
-                          splashColor: Colors.blue,
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.grey.shade300,
+                            backgroundImage:users[index].profileImageUrl.isNotEmpty
+                            ? NetworkImage(users[index].profileImageUrl)
+                            : null,
+                            child: users[index].profileImageUrl.isEmpty
+                            ? Icon(Icons.person, color: Colors.black38)
+                            : null,
+                          ),
                           title: Text(users[index].username),
                           subtitle: Text(
                             users[index].bio,
@@ -87,7 +94,6 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                             onPressed: () async {
                               final currentUserUid = _auth.currentUser!.uid;
-                              final currentUserDoc = await _firestore.collection('users').doc(currentUserUid).get();
 
                               //follow
                               if(!followingUserids.contains(targetUserid))

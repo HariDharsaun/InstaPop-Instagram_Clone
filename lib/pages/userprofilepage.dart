@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:instapop_/models/postmodel.dart';
 import 'package:instapop_/models/usermodel.dart';
-import 'package:instapop_/pages/profile_setup.dart';
 
 class Userprofilepage extends StatefulWidget {
   const Userprofilepage({super.key});
@@ -12,39 +12,46 @@ class Userprofilepage extends StatefulWidget {
 }
 
 class _UserprofilepageState extends State<Userprofilepage> {
-  Future<UserModel?> fetchUserData() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return null;
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  List<PostModel> post_obj = [];
 
-    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (doc.exists && doc.data() != null) {
-      return UserModel.fromMap(doc.data()!);
+  Future<Map<String, dynamic>> fetchAllData() async {
+    if (uid == null) return {};
+
+    // Fetch user data
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    UserModel? user;
+    if (userDoc.exists && userDoc.data() != null) {
+      user = UserModel.fromMap(userDoc.data()!);
     }
-    return null;
+
+    // Fetch posts
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('posts')
+        .where('uid', isEqualTo: uid)
+        .get();
+
+    post_obj = querySnapshot.docs
+        .map((doc) => PostModel.fromMap(doc.data()))
+        .toList();
+
+    return {'user': user};
   }
-  // @override
-  // void initState()
-  // {
-  //   super.initState();
-  //   setState(() {
-      
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<UserModel?>(
-        future: fetchUserData(),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: fetchAllData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator(color: Colors.blue));
+            return const Center(child: CircularProgressIndicator(color: Colors.blue));
           } else if (snapshot.hasError) {
-            return Center(child: Text("Something went wrong."));
-          } else if (snapshot.hasData && snapshot.data != null) {
-            final user = snapshot.data!;
+            return const Center(child: Text("Something went wrong."));
+          } else if (snapshot.hasData && snapshot.data!['user'] != null) {
+            final user = snapshot.data!['user'] as UserModel;
             return ListView(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               children: [
                 Row(
                   children: [
@@ -55,11 +62,11 @@ class _UserprofilepageState extends State<Userprofilepage> {
                         fontSize: MediaQuery.of(context).size.width * 0.04,
                       ),
                     ),
-                    Spacer(),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.menu)),
+                    const Spacer(),
+                    IconButton(onPressed: () {}, icon: const Icon(Icons.menu)),
                   ],
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     CircleAvatar(
@@ -69,27 +76,31 @@ class _UserprofilepageState extends State<Userprofilepage> {
                           : null,
                       backgroundColor: Colors.grey.shade300,
                       child: user.profileImageUrl.isEmpty
-                          ? Icon(Icons.person, size: MediaQuery.of(context).size.width * 0.15, color: Colors.black38)
+                          ? Icon(Icons.person,
+                              size: MediaQuery.of(context).size.width * 0.15,
+                              color: Colors.black38)
                           : null,
                     ),
                     Expanded(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildStat("Posts", "0",(){}),
-                          _buildStat("Followers", user.followers.length.toString(),(){Navigator.pushNamed(context,'/displayfollowers');}),
-                          _buildStat("Following", user.following.length.toString(),(){Navigator.pushNamed(context,'/displayfollowings');}),
+                          _buildStat("Posts", post_obj.length.toString(), () {}),
+                          _buildStat("Followers", user.followers.length.toString(),
+                              () => Navigator.pushNamed(context, '/displayfollowers')),
+                          _buildStat("Following", user.following.length.toString(),
+                              () => Navigator.pushNamed(context, '/displayfollowings')),
                         ],
                       ),
                     )
                   ],
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(user.bio),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -98,63 +109,67 @@ class _UserprofilepageState extends State<Userprofilepage> {
                           Navigator.pushNamed(context, '/profilesetup');
                         },
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                        child: Text("Edit Profile",style: TextStyle(color: Colors.white),),
+                        child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
                       ),
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          // Navigator.pushNamed(context, '/addpost');
+                        },
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                        child: Text("+ Create Post",style: TextStyle(color: Colors.white)),
+                        child: const Text("+ Create Post", style: TextStyle(color: Colors.white)),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 10),
-                Divider(color: Colors.grey),
-                SizedBox(height: 10),
+                const SizedBox(height: 5),
+                const Divider(color: Colors.grey),
+                const SizedBox(height: 5),
                 GridView.builder(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
-                    crossAxisSpacing: 5,
-                    mainAxisSpacing: 5,
+                    crossAxisSpacing: 1,
+                    mainAxisSpacing: 1,
                   ),
-                  itemCount: 10, // Replace with post count
+                  itemCount: post_obj.length,
                   itemBuilder: (context, index) {
-                    return Container(
-                      color: Colors.grey[300],
-                      alignment: Alignment.center,
-                      child: Text("Post ${index + 1}"),
+                    final post = post_obj[index];
+                    if(post_obj != null)
+                    {
+                      return Container(
+                        color: Colors.grey[300],
+                        alignment: Alignment.center,
+                        child: Image.network(post.imageUrl, fit: BoxFit.cover),
+                      );
+                    }
+                    return Center(
+                      child: Text("No posts yet...."),
                     );
                   },
                 ),
               ],
             );
           } else {
-            return Center(child: Text("User not found."));
+            return const Center(child: Text("User not found."));
           }
         },
       ),
     );
   }
 
-  Widget _buildStat(String label, String value,Function func) {
+  Widget _buildStat(String label, String value, VoidCallback onTap) {
     return GestureDetector(
-      onTap: ()=> func(),
-      child: Container(
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            SizedBox(height: 4),
-            Text(label, style: TextStyle(fontSize: 12)),
-          ],
-        ),
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(fontSize: 12)),
+        ],
       ),
     );
   }

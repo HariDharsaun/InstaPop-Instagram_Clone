@@ -38,7 +38,7 @@ class _NewpostpageState extends State<Newpostpage> {
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 width: MediaQuery.of(context).size.width*0.25,
-                height: MediaQuery.of(context).size.width*0.1,
+                height: MediaQuery.of(context).size.width*0.08,
                 decoration: BoxDecoration(
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(50)

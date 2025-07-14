@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:instapop_/firebase_options.dart';
 import 'package:instapop_/modes/modes.dart';
+import 'package:instapop_/pages/addpost.dart';
 import 'package:instapop_/pages/displayfollowers.dart';
 import 'package:instapop_/pages/displayfollowing.dart';
 import 'package:instapop_/pages/homepage.dart';
@@ -13,6 +14,7 @@ import 'package:instapop_/pages/pagestack.dart';
 import 'package:instapop_/pages/profile_setup.dart';
 import 'package:instapop_/pages/searchpage.dart';
 import 'package:instapop_/pages/signuppage.dart';
+import 'package:instapop_/pages/uploadpage.dart';
 import 'package:instapop_/pages/userprofilepage.dart';
 
 void main() async{
@@ -43,7 +45,8 @@ class MainApp extends StatelessWidget {
         '/userprofile':(context)=> Userprofilepage(),
         '/profilesetup': (context)=>ProfileSetupPage(),
         '/displayfollowers': (context) => FollowersListPage(),
-        '/displayfollowings': (context)=> FollowingsListPage()
+        '/displayfollowings': (context)=> FollowingsListPage(),
+        '/addpost' : (context)=> AddPostPage()
       },
     );
   }
