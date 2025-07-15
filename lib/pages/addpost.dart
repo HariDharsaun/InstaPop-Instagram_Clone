@@ -48,9 +48,9 @@ class _AddPostPageState extends State<AddPostPage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Add post'),
+          // title: Text('Add post'),
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () async {
                 final file = await selectedImage!.file;
                 if (file != null) {

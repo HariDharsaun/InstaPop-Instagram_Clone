@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instapop_/models/postmodel.dart';
 import 'package:instapop_/models/usermodel.dart';
+import 'package:instapop_/pages/postview.dart';
 
 class Userprofilepage extends StatefulWidget {
   const Userprofilepage({super.key});
@@ -140,10 +141,15 @@ class _UserprofilepageState extends State<Userprofilepage> {
                     final post = post_obj[index];
                     if(post_obj != null)
                     {
-                      return Container(
-                        color: Colors.grey[300],
-                        alignment: Alignment.center,
-                        child: Image.network(post.imageUrl, fit: BoxFit.cover),
+                      return GestureDetector(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=> PostviewPage(post: post,)));
+                        },
+                        child: Container(
+                          color: Colors.grey[300],
+                          alignment: Alignment.center,
+                          child: Image.network(post.imageUrl, fit: BoxFit.cover),
+                        ),
                       );
                     }
                     return Center(

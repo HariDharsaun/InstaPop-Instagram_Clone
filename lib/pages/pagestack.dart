@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:instapop_/pages/homepage.dart';
 import 'package:instapop_/pages/messagingpage.dart';
 import 'package:instapop_/pages/newpostpage.dart';
+import 'package:instapop_/pages/postview.dart';
 import 'package:instapop_/pages/searchpage.dart';
 import 'package:instapop_/pages/userprofilepage.dart';
 

@@ -72,6 +72,22 @@ class _UploadpageState extends State<Uploadpage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: (){
+              Navigator.pop(context);
+            }, 
+            icon: Icon(Icons.navigate_before)
+          ),
+          actions: [
+            GestureDetector(
+              onTap: (){
+                Navigator.pop(context);
+              },
+              child: Text("Cancel")
+            )
+          ],
+        ),
         body: Column(
           children: [
             SizedBox(
@@ -79,10 +95,10 @@ class _UploadpageState extends State<Uploadpage> {
               height: MediaQuery.of(context).size.height * 0.35,
               child: Image.file(widget.imagefile, fit: BoxFit.contain),
             ),
-            SizedBox(height: 50),
+            SizedBox(height: 20),
             textfield_helper(location_controller,'Location'),
             textfield_helper(caption_Controller, 'Caption'),
-            SizedBox(height: 50,),
+            SizedBox(height: 20,),
             ElevatedButton(
               onPressed: uploadPost,
               style: ButtonStyle(
