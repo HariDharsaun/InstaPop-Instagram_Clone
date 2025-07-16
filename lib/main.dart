@@ -38,7 +38,7 @@ class MainApp extends StatelessWidget {
         '/login': (context)=> Loginpage(),
         '/signup' : (context)=> SignupPage(),
         '/pagestack': (context)=>PageStack(),
-        '/homepage': (context) => Homepage(),
+        '/homepage': (context) => HomePage(),
         '/search': (context)=> SearchPage(),
         '/newpost':(context) => Newpostpage(),
         '/message': (context)=> MessagingPage(),

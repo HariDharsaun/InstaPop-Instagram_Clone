@@ -11,29 +11,34 @@ class FollowersListPage extends StatefulWidget {
 }
 
 class _FollowersListPageState extends State<FollowersListPage> {
-  FirebaseAuth _auth = FirebaseAuth.instance;
-  FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
 
-  List<String> followersid = [];
-
-  Future<List<UserModel>> fetchFollowersData() async {
-    final doc = await _fireStore
-        .collection('users')
-        .doc(_auth.currentUser!.uid)
-        .get();
+  Future<List<Map<String, dynamic>>> fetchFollowersData() async {
+    final doc = await _fireStore.collection('users').doc(_auth.currentUser!.uid).get();
     if (doc.exists && doc.data()!.containsKey('followers')) {
       List<String> followerIds = List<String>.from(doc['followers']);
 
-      List<UserModel> followers = await Future.wait(
-        followerIds.map((id) async {
-          final userDoc = await _fireStore.collection('users').doc(id).get();
-          return UserModel.fromMap(userDoc.data()!);
-        }),
-      );
-
-      return followers;
+      return await Future.wait(followerIds.map((id) async {
+        final userDoc = await _fireStore.collection('users').doc(id).get();
+        return {'uid': id, 'data': UserModel.fromMap(userDoc.data()!)};
+      }));
     }
     return [];
+  }
+
+  Future<void> removeFollower(String targetUserId) async {
+    final currentUserUid = _auth.currentUser!.uid;
+
+    await _fireStore.collection('users').doc(currentUserUid).update({
+      'followers': FieldValue.arrayRemove([targetUserId])
+    });
+
+    await _fireStore.collection('users').doc(targetUserId).update({
+      'following': FieldValue.arrayRemove([currentUserUid])
+    });
+
+    setState(() {});
   }
 
   @override
@@ -41,75 +46,68 @@ class _FollowersListPageState extends State<FollowersListPage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Followers",style: TextStyle(fontWeight: FontWeight.w400),),
+          title: const Text("Followers", style: TextStyle(fontWeight: FontWeight.w500)),
         ),
-        body: FutureBuilder(
+        body: FutureBuilder<List<Map<String, dynamic>>>(
           future: fetchFollowersData(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(color: Colors.blue),
-              );
+              return const Center(child: CircularProgressIndicator(color: Colors.blue));
+            } else if (snapshot.hasError) {
+              return const Center(child: Text("Something went wrong"));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text("No followers"));
             }
-            else if (snapshot.hasError) {
-              return Center(child: Text("Something went wrong"));
-            } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-              final users = snapshot.data;
-              return ListView.builder(
-                shrinkWrap: true,
-                itemCount: users!.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(users[index].username),
-                    subtitle: Text(users[index].bio,style: TextStyle(color: Colors.grey.shade400,fontSize: 12),),
-                    trailing: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white
+
+            final followers = snapshot.data!;
+
+            return ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              itemCount: followers.length,
+              separatorBuilder: (_, __) => Divider(height: 1),
+              itemBuilder: (context, index) {
+                final userModel = followers[index]['data'] as UserModel;
+                final uid = followers[index]['uid'] as String;
+
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  leading: CircleAvatar(
+                    radius: 25,
+                    backgroundColor: Colors.grey.shade300,
+                    backgroundImage: userModel.profileImageUrl.isNotEmpty
+                        ? NetworkImage(userModel.profileImageUrl)
+                        : null,
+                    child: userModel.profileImageUrl.isEmpty
+                        ? const Icon(Icons.person, color: Colors.black38)
+                        : null,
+                  ),
+                  title: Text(
+                    userModel.username,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text(
+                    userModel.bio,
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  ),
+                  trailing: ElevatedButton(
+                    onPressed: () async {
+                      await removeFollower(uid);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      onPressed: () async {
-                        final currentUserUid = _auth.currentUser!.uid;
-                        final email = users[index].email;
-
-                        // Find the document with matching email
-                        final query = await _fireStore
-                            .collection('users')
-                            .where('email', isEqualTo: email)
-                            .get();
-
-                        if (query.docs.isNotEmpty) {
-                          final targetUserId = query.docs.first.id;
-
-                          // Remove target user from current user's followers
-                          await _fireStore.collection('users').doc(currentUserUid).update({
-                            'followers': FieldValue.arrayRemove([targetUserId])
-                          });
-
-                          // Remove current user from target user's following
-                          await _fireStore.collection('users').doc(targetUserId).update({
-                            'following': FieldValue.arrayRemove([currentUserUid])
-                          });
-
-                          setState(() {
-                            users.remove(users[index]);
-                          }); // Refresh the UI
-                      }
-                      },
-                      child: Text('follow')
                     ),
-                  );
-                },
-              );
-            } else {
-              return Center(child: Text('No followers'));
-            }
+                    child: const Text("Follow back", style: TextStyle(color: Colors.white)),
+                  ),
+                );
+              },
+            );
           },
         ),
       ),
     );
   }
-}
-
-extension on QuerySnapshot<Map<String, dynamic>> {
-  operator [](String other) {}
 }

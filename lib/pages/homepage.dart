@@ -1,43 +1,81 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:instapop_/authentication/auth.dart';
+import 'package:instapop_/models/postmodel.dart';
+import 'package:instapop_/pages/postcard.dart';
+import 'package:instapop_/pages/postview.dart';
 
-class Homepage extends StatefulWidget {
-  const Homepage({super.key});
-
+class HomePage extends StatefulWidget {
   @override
-  State<Homepage> createState() => _HomepageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _HomepageState extends State<Homepage> {
+class _HomePageState extends State<HomePage> {
+  final _fire = FirebaseFirestore.instance;
+  final _uid = FirebaseAuth.instance.currentUser!.uid;
+  final AuthService service = AuthService();
 
-  void logout()async{
-    AuthService _auth = AuthService();
-    await _auth.logout(); 
+  Future<List<PostModel>> fetchPosts() async {
+    final userDoc = await _fire.collection('users').doc(_uid).get();
+    final following = List<String>.from(userDoc.data()?['following'] ?? []);
+
+    final allPostsSnap = await _fire
+        .collection('posts')
+        .get();
+
+    List<PostModel> followedPosts = [];
+    List<PostModel> otherPosts = [];
+
+    for (var doc in allPostsSnap.docs) {
+      final post = PostModel.fromMap(doc.data());
+      if (post.uid == _uid || following.contains(post.uid)) {
+        followedPosts.add(post);
+      } else {
+        otherPosts.add(post);
+      }
+    }
+
+    return [...followedPosts, ...otherPosts];
+  }
+
+  Future<void> _refresh() async {
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-
-
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text("InstaPop",style: GoogleFonts.lobster(fontWeight: FontWeight.w500),),
-          actions: [
-            IconButton(
-              onPressed: (){},
-              icon: Icon(Icons.favorite_border_outlined),
-            ),
-            IconButton(
-              onPressed: (){
-                logout();
-                Navigator.pushReplacementNamed(context, '/login');
-              }, 
-              icon: Icon(Icons.logout)
-            )
-          ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('InstaPop', style: GoogleFonts.lobster()),
+        actions: [
+          IconButton(
+            onPressed: () {
+              service.logout();
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+            icon: Icon(Icons.logout),
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: FutureBuilder<List<PostModel>>(
+          future: fetchPosts(),
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+            final posts = snap.data ?? [];
+            if (posts.isEmpty) {
+              return Center(child: Text('No posts available.'));
+            }
+            return ListView.builder(
+              itemCount: posts.length,
+              itemBuilder: (context, i) => PostCard(post: posts[i]),
+            );
+          },
         ),
       ),
     );

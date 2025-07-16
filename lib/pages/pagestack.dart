@@ -43,7 +43,7 @@ class _PageStackState extends State<PageStack> {
             });
           },
           children: [
-              Homepage(),
+              HomePage(),
               SearchPage(),
               Newpostpage(),
               MessagingPage(),

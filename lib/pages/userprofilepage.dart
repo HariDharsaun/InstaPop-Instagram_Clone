@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instapop_/models/postmodel.dart';
 import 'package:instapop_/models/usermodel.dart';
+import 'package:instapop_/pages/postcard.dart';
 import 'package:instapop_/pages/postview.dart';
 
 class Userprofilepage extends StatefulWidget {

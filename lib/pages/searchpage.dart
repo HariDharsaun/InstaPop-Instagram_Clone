@@ -11,158 +11,99 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  TextEditingController search_controller = TextEditingController();
-
+  TextEditingController searchController = TextEditingController();
   FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Set<String> followingUserids = {};
+  Set<String> followingUserIds = {};
+  String searchText = '';
 
   @override
-  void initState()
-  {
+  void initState() {
     super.initState();
     fetchFollowingList();
   }
 
   void fetchFollowingList() async {
-  final uid = _auth.currentUser!.uid;
-  final doc = await _firestore.collection('users').doc(uid).get();
-  if (doc.exists && doc.data()!.containsKey('following')) {
-    List<dynamic> followingList = doc['following'];
-    if (!mounted) return;
-    setState(() {
-      followingUserids = Set<String>.from(followingList);
-    });
+    final uid = _auth.currentUser!.uid;
+    final doc = await _firestore.collection('users').doc(uid).get();
+    if (doc.exists && doc.data()!.containsKey('following')) {
+      List<dynamic> followingList = doc['following'];
+      if (!mounted) return;
+      setState(() {
+        followingUserIds = Set<String>.from(followingList);
+      });
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         body: Padding(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(12),
           child: Column(
             children: [
-              searchbar(),
-              SizedBox(height: 10,),
-              StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection('users')
-                    .snapshots(),
-                builder: (context, snapshots) {
-                  if (snapshots.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator(color: Colors.blue));
-                  } else if (snapshots.hasData &&
-                      snapshots.data!.docs != null) {
-                    List<UserModel> users = snapshots.data!.docs
-                        .map((doc) {
-                          return UserModel.fromMap(doc.data());
-                        })
-                        .where((user) => user.email != _auth.currentUser!.email)
+              buildSearchBar(),
+              const SizedBox(height: 10),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: _firestore.collection('users').snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return const Center(child: Text("Something went wrong"));
+                    }
+
+                    final users = snapshot.data!.docs
+                        .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>))
+                        .where((user) =>
+                            user.email != _auth.currentUser!.email &&
+                            user.username.toLowerCase().contains(searchText.toLowerCase()))
                         .toList();
 
+                    if (users.isEmpty) {
+                      return const Center(child: Text("No user found"));
+                    }
+
                     return ListView.builder(
-                      shrinkWrap: true,
                       itemCount: users.length,
                       itemBuilder: (context, index) {
-                        final targetUserid = snapshots.data!.docs[index].id;
-                        bool isFollowing = followingUserids.contains(targetUserid);
+                        final user = users[index];
+                        final userId = snapshot.data!.docs[index].id;
+                        final isFollowing = followingUserIds.contains(userId);
 
                         return ListTile(
                           leading: CircleAvatar(
                             backgroundColor: Colors.grey.shade300,
-                            backgroundImage:users[index].profileImageUrl.isNotEmpty
-                            ? NetworkImage(users[index].profileImageUrl)
-                            : null,
-                            child: users[index].profileImageUrl.isEmpty
-                            ? Icon(Icons.person, color: Colors.black38)
-                            : null,
+                            backgroundImage: user.profileImageUrl.isNotEmpty
+                                ? NetworkImage(user.profileImageUrl)
+                                : null,
+                            child: user.profileImageUrl.isEmpty
+                                ? const Icon(Icons.person, color: Colors.black38)
+                                : null,
                           ),
-                          title: Text(users[index].username),
+                          title: Text(user.username),
                           subtitle: Text(
-                            users[index].bio,
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 12
-                            ),
+                            user.bio,
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                           ),
                           trailing: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isFollowing ?  Colors.red.shade400 : Colors.blue, 
+                              backgroundColor: isFollowing ? Colors.red : Colors.blue,
                             ),
-                            onPressed: () async {
-                              final currentUserUid = _auth.currentUser!.uid;
-
-                              //follow
-                              if(!followingUserids.contains(targetUserid))
-                              {
-                                setState(() {
-                                  followingUserids.add(targetUserid);
-                                });
-
-                                //Add following to the currentuser following list
-                                await _firestore.collection('users').doc(currentUserUid).update(
-                                  {
-                                    'following' : FieldValue.arrayUnion([targetUserid])
-                                  }
-                                );
-
-                                //add followers to the targetuser folllowers list
-                                await _firestore.collection('users').doc(targetUserid).update(
-                                  {
-                                    'followers' : FieldValue.arrayUnion([currentUserUid])
-                                  }
-                                );
-                              }
-                              //unfollow
-                              else
-                              {
-                                
-                                setState(() {
-                                  followingUserids.remove(targetUserid);
-                                });
-
-                                 await _firestore.collection('users').doc(currentUserUid).update(
-                                  {
-                                    'following' : FieldValue.arrayRemove([targetUserid])
-                                  }
-                                );
-
-                                 await _firestore.collection('users').doc(targetUserid).update(
-                                  {
-                                    'followers' : FieldValue.arrayRemove([currentUserUid])
-                                  }
-                                );
-
-                              }
-                            },
-                            child: (isFollowing)
-                                ? Text(
-                                    "un follow",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  )
-                                : Text(
-                                    "follow",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
+                            onPressed: () => toggleFollow(userId, isFollowing),
+                            child: Text(
+                              isFollowing ? 'Unfollow' : 'Follow',
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
                         );
                       },
                     );
-                  } else if (snapshots.hasError) {
-                    return Center(child: Text("Something went wrong"));
-                  } else {
-                    return Center(child: Text("No user found"));
-                  }
-                },
+                  },
+                ),
               ),
             ],
           ),
@@ -171,42 +112,44 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget searchbar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(50),
-        border: BoxBorder.all(width: 0.3),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          SizedBox(width: 15),
-          Icon(Icons.search, color: Colors.grey.shade600),
-          Expanded(
-            child: TextField(
-              controller: search_controller,
-              style: TextStyle(color: Colors.black),
-              cursorColor: Colors.blue,
-              decoration: InputDecoration(
-                // fillColor: Colors.grey.shade200,
-                // filled: true,
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                hintText: "search",
-                hintStyle: TextStyle(color: Colors.grey.shade600),
-              ),
-              obscureText: false,
-            ),
-          ),
-        ],
+  Widget buildSearchBar() {
+    return TextField(
+      controller: searchController,
+      onChanged: (value) {
+        setState(() {
+          searchText = value;
+        });
+      },
+      decoration: InputDecoration(
+        prefixIcon: const Icon(Icons.search),
+        hintText: 'Search username...',
+        filled: true,
+        fillColor: Colors.grey.shade200,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
       ),
     );
+  }
+
+  void toggleFollow(String targetUserId, bool isCurrentlyFollowing) async {
+    final currentUserUid = _auth.currentUser!.uid;
+
+    if (isCurrentlyFollowing) {
+      setState(() => followingUserIds.remove(targetUserId));
+      await _firestore.collection('users').doc(currentUserUid).update({
+        'following': FieldValue.arrayRemove([targetUserId])
+      });
+      await _firestore.collection('users').doc(targetUserId).update({
+        'followers': FieldValue.arrayRemove([currentUserUid])
+      });
+    } else {
+      setState(() => followingUserIds.add(targetUserId));
+      await _firestore.collection('users').doc(currentUserUid).update({
+        'following': FieldValue.arrayUnion([targetUserId])
+      });
+      await _firestore.collection('users').doc(targetUserId).update({
+        'followers': FieldValue.arrayUnion([currentUserUid])
+      });
+    }
   }
 }

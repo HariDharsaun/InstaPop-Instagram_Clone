@@ -153,11 +153,10 @@ class _PostviewPageState extends State<PostviewPage> {
             ),
 
             // Image
-            Container(
-              height: MediaQuery.of(context).size.height * 0.35,
-              width: double.infinity,
-              child: Image.network(post.imageUrl, fit: BoxFit.contain),
-            ),
+            AspectRatio(
+                aspectRatio: 0.9,
+                child: Image.network(post.imageUrl, fit: BoxFit.cover),
+              ),
 
             // Like, comment, share row
             Row(
