@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,131 +6,156 @@ import 'package:instapop_/models/postmodel.dart';
 import 'package:instapop_/services/cloudinary.dart';
 
 class Uploadpage extends StatefulWidget {
-  File imagefile;
+  final File imagefile;
 
-  Uploadpage({super.key, required this.imagefile});
+  const Uploadpage({super.key, required this.imagefile});
 
   @override
   State<Uploadpage> createState() => _UploadpageState();
 }
 
 class _UploadpageState extends State<Uploadpage> {
+  final TextEditingController locationController = TextEditingController();
+  final TextEditingController captionController = TextEditingController();
 
-  TextEditingController location_controller = TextEditingController();
-  TextEditingController caption_Controller = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  FirebaseAuth _auth = FirebaseAuth.instance;
-  FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool isUploading = false;
 
   Future<void> uploadPost() async {
-    final imageurl = await Cloudinary.uploadToCloudinary(widget.imagefile);
+    if (isUploading) return;
 
+    setState(() => isUploading = true);
     final uid = _auth.currentUser!.uid;
+    final docRef = _firestore.collection('posts').doc();
+    final postId = docRef.id;
 
-    PostModel post = PostModel(
-      imageUrl: imageurl, 
-      caption: caption_Controller.text, 
-      location: location_controller.text, 
-      uid: uid, 
-      likes: [], 
-      comments: [], 
-      shares: [], 
-      time: Timestamp.now()
-    );
+    try {
+      final imageUrl = await Cloudinary.uploadToCloudinary(widget.imagefile);
 
-    try{
-      await _firestore.collection('posts').add(
-        post.toMap()
+      PostModel post = PostModel(
+        imageUrl: imageUrl,
+        caption: captionController.text.trim(),
+        location: locationController.text.trim(),
+        uid: uid,
+        likes: [],
+        comments: [],
+        shares: [],
+        time: Timestamp.now(),
+        postid: postId,
       );
 
-      caption_Controller.clear();
-      location_controller.clear();
+      await docRef.set(post.toMap());
+      captionController.clear();
+      locationController.clear();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.black,
-          content: Text('Image uploaded successfully!')
-        )
+        const SnackBar(content: Text('Post uploaded!')),
       );
 
       Navigator.pop(context);
-    }
-    catch(e)
-    {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.black,
-          content: Text('Image uploaded failed!')
-        )
+        const SnackBar(content: Text('Upload failed')),
       );
+    } finally {
+      setState(() => isUploading = false);
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
+          title: const Text("Upload Post"),
           leading: IconButton(
-            onPressed: (){
-              Navigator.pop(context);
-            }, 
-            icon: Icon(Icons.navigate_before)
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
           ),
           actions: [
-            GestureDetector(
-              onTap: (){
-                Navigator.pop(context);
-              },
-              child: Text("Cancel")
-            )
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+            ),
           ],
         ),
-        body: Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.35,
-              child: Image.file(widget.imagefile, fit: BoxFit.contain),
-            ),
-            SizedBox(height: 20),
-            textfield_helper(location_controller,'Location'),
-            textfield_helper(caption_Controller, 'Caption'),
-            SizedBox(height: 20,),
-            ElevatedButton(
-              onPressed: uploadPost,
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.blue,),
-                foregroundColor: MaterialStateProperty.all(Colors.white)
-              ), 
-              child: Text("Upload"),
-            ),
-          ],
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Image preview
+              Card(
+                margin: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 4,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    widget.imagefile,
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height * 0.3,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    textFieldHelper(locationController, 'Enter location'),
+                    const SizedBox(height: 12),
+                    textFieldHelper(captionController, 'Write a caption...', maxLines: 3),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: isUploading ? null : uploadPost,
+                        icon: isUploading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.cloud_upload),
+                        label: const Text("Upload Post"),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget textFieldHelper(TextEditingController controller, String hint, {int maxLines = 1}) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey.shade500),
+        filled: true,
+        fillColor: Colors.grey.shade100,
+        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blue.shade300),
         ),
       ),
     );
   }
 }
-
-Widget textfield_helper(TextEditingController controller,String hint) {
-  return Padding(
-    padding: EdgeInsets.all(8),
-    child: TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        hint: Text(hint, style: TextStyle(color: Colors.grey.shade500)),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(width: 1, color: Colors.grey.shade500),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(width: 1, color: Colors.grey.shade800),
-        ),
-      ),
-    ),
-  );
-}
-

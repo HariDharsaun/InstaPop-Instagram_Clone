@@ -103,7 +103,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     try {
       await _firestore.collection('users').doc(uid).update(updateData);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile saved!')));
-      Navigator.pop(context);
+      Navigator.pushNamed(context, '/pagestack');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save profile')));
     }

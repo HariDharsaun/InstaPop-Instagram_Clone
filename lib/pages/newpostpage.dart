@@ -31,26 +31,21 @@ class _NewpostpageState extends State<Newpostpage> {
                 AddReelsPage()
               ],
             ),
-            AnimatedPositioned(
-              bottom: 10,
-              right: currentIndex == 0 ? 150 : 200,
-              duration: Duration(milliseconds: 300),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                width: MediaQuery.of(context).size.width*0.25,
-                height: MediaQuery.of(context).size.width*0.08,
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(50)
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text("Post",style: TextStyle(color: currentIndex == 0?  Colors.white : Colors.white30),),
-                    SizedBox(width: 5,),
-                    Text("Reels",style: TextStyle(color: currentIndex == 1 ?  Colors.white : Colors.white30))
-                  ],
-                ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              width: MediaQuery.of(context).size.width*0.25,
+              height: MediaQuery.of(context).size.width*0.08,
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(50)
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text("Post",style: TextStyle(color: currentIndex == 0?  Colors.white : Colors.white30),),
+                  SizedBox(width: 5,),
+                  Text("Reels",style: TextStyle(color: currentIndex == 1 ?  Colors.white : Colors.white30))
+                ],
               ),
             )
           ],

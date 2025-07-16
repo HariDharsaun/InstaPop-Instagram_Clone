@@ -9,6 +9,7 @@ class PostModel {
   final List<String> comments;
   final List<String> shares;
   final Timestamp time;
+  final String postid;
 
   PostModel({
     required this.imageUrl,
@@ -19,6 +20,7 @@ class PostModel {
     required this.comments,
     required this.shares,
     required this.time,
+    required this.postid
   });
 
   factory PostModel.fromMap(Map<String, dynamic> map) {
@@ -31,6 +33,7 @@ class PostModel {
       comments: List<String>.from(map['comments'] ?? []),
       shares: List<String>.from(map['shares'] ?? []),
       time: map['time'] ?? Timestamp.now(),
+      postid: map['postid'] ?? '',
     );
   }
 
@@ -44,6 +47,7 @@ class PostModel {
       'comments': comments,
       'shares': shares,
       'time': time,
+      'postid': postid
     };
   }
 }

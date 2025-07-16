@@ -1,11 +1,10 @@
 import 'dart:io';
-
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:instapop_/models/postmodel.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:instapop_/pages/uploadpage.dart';
-import 'package:instapop_/services/cloudinary.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class AddPostPage extends StatefulWidget {
@@ -18,8 +17,7 @@ class AddPostPage extends StatefulWidget {
 class _AddPostPageState extends State<AddPostPage> {
   List<AssetEntity> images = [];
   AssetEntity? selectedImage;
-  FirebaseAuth _auth = FirebaseAuth.instance;
-  FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool loading = true;
 
   @override
   void initState() {
@@ -29,103 +27,151 @@ class _AddPostPageState extends State<AddPostPage> {
 
   Future<void> loadImages() async {
     final permission = await PhotoManager.requestPermissionExtend();
-
     if (!permission.isAuth) return;
 
     final albums = await PhotoManager.getAssetPathList(type: RequestType.image);
     if (albums.isNotEmpty) {
-      final recentalbum = albums[0];
-      final assets = await recentalbum.getAssetListPaged(page: 0, size: 10);
+      final recentAlbum = albums[0];
+      final assets = await recentAlbum.getAssetListPaged(page: 0, size: 50);
       setState(() {
-        selectedImage = assets.first;
         images = assets;
+        selectedImage = assets.isNotEmpty ? assets.first : null;
+        loading = false;
       });
+    } else {
+      setState(() {
+        images = [];
+        selectedImage = null;
+        loading = false;
+      });
+    }
+  }
+
+  void navigateToUpload(File file) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => Uploadpage(imagefile: file),
+        transitionsBuilder: (_, anim, __, child) {
+          return SlideTransition(
+            position: Tween(begin: const Offset(1, 0), end: Offset.zero).animate(anim),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> pickFromGallery() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      navigateToUpload(File(picked.path));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          // title: Text('Add post'),
-          actions: [
-            ElevatedButton(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("New Post", style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: ElevatedButton(
               onPressed: () async {
-                final file = await selectedImage!.file;
+                final file = await selectedImage?.file;
                 if (file != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Uploadpage(imagefile: file),
-                    ),
-                  );
+                  navigateToUpload(file);
                 }
               },
-              child: Text('upload'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("Next"),
             ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              if (selectedImage != null)
-                FutureBuilder(
-                  future: selectedImage!.file,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return Container(
-                        height: MediaQuery.of(context).size.height * 0.3,
-                        width: double.infinity,
-                        child: Image.file(snapshot.data!, fit: BoxFit.contain),
-                      );
-                    }
-                    return Container();
-                  },
-                ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                alignment: Alignment.centerLeft,
-                width: double.infinity,
-                child: Text("Recents", style: TextStyle(fontSize: 20)),
-              ),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 5,
-                  mainAxisSpacing: 5,
-                ),
-                itemCount: images.length,
-                itemBuilder: (context, index) {
-                  return FutureBuilder(
-                    future: images[index].thumbnailDataWithSize(
-                      ThumbnailSize(200, 200),
-                    ),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child: CircularProgressIndicator(color: Colors.blue),
-                        );
-                      } else if (snapshot.hasData) {
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedImage = images[index];
-                            });
-                          },
-                          child: Image.memory(snapshot.data!),
-                        );
-                      }
-                      return Center(child: Text("No images found!"));
-                    },
-                  );
-                },
-              ),
-            ],
           ),
-        ),
+        ],
+      ),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : images.isEmpty
+              ? const Center(child: Text("No images found"))
+              : Column(
+                  children: [
+                    if (selectedImage != null)
+                      FutureBuilder<File?>(
+                        future: selectedImage!.file,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return Container(
+                              height: MediaQuery.of(context).size.height * 0.35,
+                              width: double.infinity,
+                              child: Image.file(snapshot.data!, fit: BoxFit.cover),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Recents", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 3,
+                          crossAxisSpacing: 3,
+                        ),
+                        itemCount: images.length,
+                        itemBuilder: (context, index) {
+                          final isSelected = selectedImage == images[index];
+                          return FutureBuilder<Uint8List?>(
+                            future: images[index].thumbnailDataWithSize(const ThumbnailSize(200, 200)),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      selectedImage = images[index];
+                                    });
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      Positioned.fill(
+                                        child: Image.memory(snapshot.data!, fit: BoxFit.cover),
+                                      ),
+                                      if (isSelected)
+                                        Container(
+                                          color: Colors.black.withOpacity(0.4),
+                                          child: const Center(
+                                            child: Icon(Icons.check_circle, color: Colors.white, size: 30),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return const Center(child: CircularProgressIndicator());
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+      floatingActionButton: FloatingActionButton.extended(
+        foregroundColor: Colors.white,
+        onPressed: pickFromGallery,
+        icon: const Icon(Icons.photo_library),
+        label: const Text("Gallery"),
+        backgroundColor: Colors.blue,
       ),
     );
   }

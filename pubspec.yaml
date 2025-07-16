@@ -18,6 +18,7 @@ dependencies:
   http: 
   photo_manager:
   intl:
+  emoji_picker_flutter:
 
 dev_dependencies:
   flutter_test:
