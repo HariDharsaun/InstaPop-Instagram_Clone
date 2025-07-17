@@ -21,9 +21,7 @@ class _HomePageState extends State<HomePage> {
     final userDoc = await _fire.collection('users').doc(_uid).get();
     final following = List<String>.from(userDoc.data()?['following'] ?? []);
 
-    final allPostsSnap = await _fire
-        .collection('posts')
-        .get();
+    final allPostsSnap = await _fire.collection('posts').get();
 
     List<PostModel> followedPosts = [];
     List<PostModel> otherPosts = [];
@@ -48,14 +46,22 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('InstaPop', style: GoogleFonts.lobster()),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 55,
+              height: 55,
+              child: Image.asset('assets/App_Icon/app_icon.png'),
+            ),
+            Text('InstaPop', style: GoogleFonts.lobster()),
+          ],
+        ),
+
         actions: [
           IconButton(
-            onPressed: () {
-              service.logout();
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-            icon: Icon(Icons.logout),
+            onPressed: () {},
+            icon: Icon(Icons.favorite_sharp),
           ),
         ],
       ),

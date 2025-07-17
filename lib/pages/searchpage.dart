@@ -95,7 +95,7 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                             onPressed: () => toggleFollow(userId, isFollowing),
                             child: Text(
-                              isFollowing ? 'Unfollow' : 'Follow',
+                              isFollowing ? 'Un follow' : 'Follow',
                               style: const TextStyle(color: Colors.white),
                             ),
                           ),
@@ -114,15 +114,18 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget buildSearchBar() {
     return TextField(
+      style: TextStyle(color: Colors.black),
       controller: searchController,
       onChanged: (value) {
         setState(() {
           searchText = value;
         });
       },
+      cursorColor: Colors.black,
       decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.search),
+        prefixIcon: const Icon(Icons.search,color: Colors.grey,),
         hintText: 'Search username...',
+        hintStyle: TextStyle(color: Colors.grey),
         filled: true,
         fillColor: Colors.grey.shade200,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),

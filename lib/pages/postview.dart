@@ -45,6 +45,26 @@ class _PostviewPageState extends State<PostviewPage> {
     }
   }
 
+  Future<String> fetchFirstUser()async {
+    final String userid = widget.post.likes.first;
+    if(userid.isNotEmpty)
+    {
+      try{
+        final doc = await FirebaseFirestore.instance.collection("users").doc(userid).get();
+        final userMap = doc.data();
+        if (userMap != null) {
+         final user = UserModel.fromMap(userMap);
+         return user.username;
+        }
+      }
+      catch(e)
+      {
+        print("Error fetching first user: $e");
+      }
+    }
+    return '';
+  }
+
   Future<void> toggleLike() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     final postref = FirebaseFirestore.instance.collection('posts').doc(widget.post.postid);
@@ -76,7 +96,7 @@ class _PostviewPageState extends State<PostviewPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Post deleted')),
       );
-      Navigator.pop(context); // Go back to profile page
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to delete post!')),
@@ -180,13 +200,29 @@ class _PostviewPageState extends State<PostviewPage> {
 
             // Like count (if > 0)
             if (likeCount > 0)
-              Padding(
-                padding: const EdgeInsets.only(left: 12.0),
-                child: Text(
-                  '$likeCount likes',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: FutureBuilder(
+                    future: fetchFirstUser(), 
+                    builder: (context,snapshot){
+                      final firstUser = snapshot.data ?? '';
+                      return Row(
+                              children: [
+                                Text(
+                                '$likeCount likes',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(width: 5,),
+                                Text('by ',),
+                                // SizedBox(width: 5,),
+                                Text(firstUser,style: TextStyle(fontWeight: FontWeight.bold),),
+                                SizedBox(width: 5,),
+                                Text('and others')
+                              ]
+                            );
+                    }
+                  )
                 ),
-              ),
 
             // Caption row
             Padding(

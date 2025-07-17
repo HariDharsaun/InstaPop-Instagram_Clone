@@ -37,7 +37,7 @@ class _LoginpageState extends State<Loginpage> {
           pwd_controller.text.trim(),
         );
         if (msg == "success") {
-          Navigator.pushNamed(context, '/pagestack');
+          Navigator.pushReplacementNamed(context, '/pagestack');
         } else {
           ScaffoldMessenger.of(
             context,

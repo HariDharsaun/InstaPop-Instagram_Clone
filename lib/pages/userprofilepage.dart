@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:instapop_/authentication/auth.dart';
 import 'package:instapop_/models/postmodel.dart';
 import 'package:instapop_/models/usermodel.dart';
-import 'package:instapop_/pages/postcard.dart';
 import 'package:instapop_/pages/postview.dart';
 
 class Userprofilepage extends StatefulWidget {
@@ -16,32 +17,30 @@ class Userprofilepage extends StatefulWidget {
 class _UserprofilepageState extends State<Userprofilepage> {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   List<PostModel> post_obj = [];
+  final AuthService _auth = AuthService();
 
   Future<Map<String, dynamic>> fetchAllData() async {
     if (uid == null) return {};
 
-    // Fetch user data
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
     UserModel? user;
     if (userDoc.exists && userDoc.data() != null) {
       user = UserModel.fromMap(userDoc.data()!);
     }
 
-    // Fetch posts
     final querySnapshot = await FirebaseFirestore.instance
         .collection('posts')
         .where('uid', isEqualTo: uid)
         .get();
 
-    post_obj = querySnapshot.docs
-        .map((doc) => PostModel.fromMap(doc.data()))
-        .toList();
+    post_obj = querySnapshot.docs.map((doc) => PostModel.fromMap(doc.data())).toList();
 
     return {'user': user};
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: FutureBuilder<Map<String, dynamic>>(
         future: fetchAllData(),
@@ -65,7 +64,38 @@ class _UserprofilepageState extends State<Userprofilepage> {
                       ),
                     ),
                     const Spacer(),
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.menu)),
+                    PopupMenuButton(
+                      icon: const Icon(Icons.menu),
+                      onSelected: (value) {
+                        if (value == 'theme') {
+                          //function
+                        } else if (value == 'logout') {
+                          logout();
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'theme',
+                          child: Row(
+                                children: [
+                                  Icon(Icons.dark_mode),
+                                  const SizedBox(width: 5),
+                                  Text('Dark Mode'),
+                                ],
+                              ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'logout',
+                          child: Row(
+                            children: [
+                              Icon(Icons.logout),
+                              SizedBox(width: 5),
+                              Text('Logout'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -107,8 +137,9 @@ class _UserprofilepageState extends State<Userprofilepage> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/profilesetup');
+                        onPressed: () async {
+                          await Navigator.pushNamed(context, '/editprofile');
+                          setState(() {});
                         },
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                         child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
@@ -118,7 +149,7 @@ class _UserprofilepageState extends State<Userprofilepage> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          // Navigator.pushNamed(context, '/addpost');
+                          // Add post
                         },
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                         child: const Text("+ Create Post", style: TextStyle(color: Colors.white)),
@@ -140,21 +171,19 @@ class _UserprofilepageState extends State<Userprofilepage> {
                   itemCount: post_obj.length,
                   itemBuilder: (context, index) {
                     final post = post_obj[index];
-                    if(post_obj != null)
-                    {
-                      return GestureDetector(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=> PostviewPage(post: post,)));
-                        },
-                        child: Container(
-                          color: Colors.grey[300],
-                          alignment: Alignment.center,
-                          child: Image.network(post.imageUrl, fit: BoxFit.cover),
-                        ),
-                      );
-                    }
-                    return Center(
-                      child: Text("No posts yet...."),
+                    return GestureDetector(
+                      onTap: () async {
+                        await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => PostviewPage(post: post)));
+                         if (mounted) setState(() {});
+                      },
+                      child: Container(
+                        color: Colors.grey[300],
+                        alignment: Alignment.center,
+                        child: Image.network(post.imageUrl, fit: BoxFit.cover),
+                      ),
                     );
                   },
                 ),
@@ -177,6 +206,27 @@ class _UserprofilepageState extends State<Userprofilepage> {
           const SizedBox(height: 4),
           Text(label, style: const TextStyle(fontSize: 12)),
         ],
+      ),
+    );
+  }
+
+  void logout() {
+    Get.defaultDialog(
+      title: "Logout",
+      content: const Text('Are you sure you want to logout?'),
+      confirm: ElevatedButton(
+        onPressed: () {
+          Get.back();
+          _auth.logout();
+          Get.offAllNamed('/login');
+        },
+        child: const Text("Yes"),
+      ),
+      cancel: TextButton(
+        onPressed: () {
+          Get.back();
+        },
+        child: const Text("Cancel"),
       ),
     );
   }

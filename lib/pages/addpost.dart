@@ -27,11 +27,16 @@ class _AddPostPageState extends State<AddPostPage> {
 
   Future<void> loadImages() async {
     final permission = await PhotoManager.requestPermissionExtend();
-    if (!permission.isAuth) return;
+    if (!permission.isAuth) {
+      setState(() {
+        loading = false;
+      });
+      return;
+    }
 
     final albums = await PhotoManager.getAssetPathList(type: RequestType.image);
     if (albums.isNotEmpty) {
-      final recentAlbum = albums[0];
+      final recentAlbum = albums.first;
       final assets = await recentAlbum.getAssetListPaged(page: 0, size: 50);
       setState(() {
         images = assets;

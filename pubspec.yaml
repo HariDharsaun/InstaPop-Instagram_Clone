@@ -20,11 +20,19 @@ dependencies:
   intl:
   emoji_picker_flutter:
   collection:
+  get: 
+  connectivity_plus: ^6.1.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/App_Icon/app_icon.png"
 
 flutter:
   uses-material-design: true

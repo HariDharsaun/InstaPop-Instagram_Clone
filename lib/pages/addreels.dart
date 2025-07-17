@@ -11,7 +11,7 @@ class _AddPostPageState extends State<AddReelsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: Text("Add reels")),
+      body: Center(child: Text("No reels yet")),
     );
   }
 }

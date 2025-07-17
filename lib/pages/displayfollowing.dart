@@ -100,7 +100,7 @@ class _FollowingsListPageState extends State<FollowingsListPage> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: const Text("Unfollow", style: TextStyle(color: Colors.white)),
+                    child: const Text("Un follow", style: TextStyle(color: Colors.white)),
                   ),
                 );
               },

@@ -100,7 +100,7 @@ class _FollowersListPageState extends State<FollowersListPage> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: const Text("Follow back", style: TextStyle(color: Colors.white)),
+                    child: const Text("remove", style: TextStyle(color: Colors.white)),
                   ),
                 );
               },
